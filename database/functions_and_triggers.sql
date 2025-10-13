@@ -6,7 +6,9 @@ begin
 	
 	SELECT * INTO existing_record
     FROM dim_driver
-    WHERE driver_full_name = NEW.driver_full_name
+    WHERE 1=1
+		and full_name = NEW.full_name
+		and is_latest = true
     ORDER BY effective_to_session DESC
     LIMIT 1;
 	
@@ -14,31 +16,40 @@ begin
 		
 		if existing_record.effective_to_session < new.effective_from_session then
 			update dim_driver
-			set updated_at = CURRENT_TIMESTAMP, effective_to_session = new.effective_to_session, is_latest = false
+			set updated_at = CURRENT_TIMESTAMP, effective_to_session = new.effective_to_session
 			where 1=1
-				and driver_full_name = new.driver_full_name;
-		end if;is_active
+				and is_latest = true
+				and full_name = new.full_name;
+		end if;
 			
 		IF (
-		    existing_record.driver_broadcast_name IS DISTINCT FROM NEW.driver_broadcast_name AND
-		    existing_record.driver_country_code IS DISTINCT FROM NEW.driver_country_code AND
-		    existing_record.driver_number IS DISTINCT FROM NEW.driver_number AND
-		    existing_record.driver_full_name IS DISTINCT FROM NEW.driver_full_name AND
-		    existing_record.driver_first_name IS DISTINCT FROM NEW.driver_first_name AND
-		    existing_record.driver_last_name IS DISTINCT FROM NEW.driver_last_name AND
-		    existing_record.driver_name_acronym IS DISTINCT FROM NEW.driver_name_acronym AND
-		    existing_record.driver_headshot_url IS DISTINCT FROM NEW.driver_headshot_url AND
-		    existing_record.driver_meeting_key IS DISTINCT FROM NEW.driver_meeting_key AND
-		    existing_record.driver_team_colour IS DISTINCT FROM NEW.driver_team_colour AND
-		    existing_record.driver_team_name IS DISTINCT FROM NEW.driver_team_name AND
-			existing_record.effective_from_session IS DISTINCT FROM NEW.effective_from_session AND
-		    existing_record.is_active IS DISTINCT FROM NEW.is_active
+		    existing_record.broadcast_name IS DISTINCT FROM NEW.broadcast_name OR
+		    existing_record.country_code IS DISTINCT FROM NEW.country_code OR
+		    existing_record.driver_number IS DISTINCT FROM NEW.driver_number OR
+		    existing_record.full_name IS DISTINCT FROM NEW.full_name OR
+		    existing_record.first_name IS DISTINCT FROM NEW.first_name OR
+		    existing_record.last_name IS DISTINCT FROM NEW.last_name OR
+		    existing_record.name_acronym IS DISTINCT FROM NEW.name_acronym OR
+		    existing_record.headshot_url IS DISTINCT FROM NEW.headshot_url OR
+		    existing_record.meeting_key IS DISTINCT FROM NEW.meeting_key OR
+		    existing_record.team_colour IS DISTINCT FROM NEW.team_colour OR
+		    existing_record.team_name IS DISTINCT FROM NEW.team_name
 		) THEN
-       		return null;
+			update dim_driver
+			set is_latest = false
+			where 1=1
+				and is_latest = true
+				and full_name = new.full_name
+			;
+
+       		return new;
+		else
+			return null;
 		end if;
-		
+	else
+		return new;
 	end if;
-	return new;
+--	return null;
 end;
 $$ LANGUAGE plpgsql;
 
