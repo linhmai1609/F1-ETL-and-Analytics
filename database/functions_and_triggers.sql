@@ -9,14 +9,14 @@ begin
     WHERE 1=1
 		and full_name = NEW.full_name
 		and is_latest = true
-    ORDER BY effective_to_session DESC
+    ORDER BY effective_to_meeting DESC
     LIMIT 1;
 	
 	if found then 
 		
-		if existing_record.effective_to_session < new.effective_from_session then
+		if existing_record.effective_to_meeting < new.effective_from_meeting then
 			update dim_driver
-			set updated_at = CURRENT_TIMESTAMP, effective_to_session = new.effective_to_session
+			set updated_at = CURRENT_TIMESTAMP, effective_to_meeting = new.effective_to_meeting
 			where 1=1
 				and is_latest = true
 				and full_name = new.full_name;
@@ -31,7 +31,7 @@ begin
 		    existing_record.last_name IS DISTINCT FROM NEW.last_name OR
 		    existing_record.name_acronym IS DISTINCT FROM NEW.name_acronym OR
 		    existing_record.headshot_url IS DISTINCT FROM NEW.headshot_url OR
-		    existing_record.meeting_key IS DISTINCT FROM NEW.meeting_key OR
+--		    existing_record.meeting_key IS DISTINCT FROM NEW.meeting_key OR
 		    existing_record.team_colour IS DISTINCT FROM NEW.team_colour OR
 		    existing_record.team_name IS DISTINCT FROM NEW.team_name
 		) THEN

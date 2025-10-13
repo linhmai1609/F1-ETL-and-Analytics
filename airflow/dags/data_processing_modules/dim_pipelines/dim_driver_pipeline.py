@@ -41,13 +41,14 @@ class DimDriverPipeline:
             
         # Apply the function to all string columns in the DataFrame
         df = df.applymap(double_apostrophes)
-        df['driver_id'] = df['full_name']+'_'+df['team_name']
-        df['driver_id'] = df['driver_id'].str.replace(' ', '-').str.lower()
-        df.rename(columns={'session_key': 'effective_from_session'}, inplace=True)
-        df['effective_to_session'] = df['effective_from_session']
+        df.drop(columns=['session_key'], inplace=True)
+        df['driver_id'] = df['meeting_key'].astype(str)+'_'+df['driver_number'].astype(str)
+        # df['driver_id'] = df['driver_id'].str.replace(' ', '-').str.lower()
+        df.rename(columns={'meeting_key': 'effective_from_meeting'}, inplace=True)
+        df['effective_to_meeting'] = df['effective_from_meeting']
         df['is_latest'] = True
 
-        df.sort_values(by=['full_name', 'effective_from_session'], inplace=True)
+        df.sort_values(by=['full_name', 'effective_from_meeting'], inplace=True)
         # df.to_csv("dim_driver_debug.csv", index=False)
 
         grouped = df.groupby('full_name')
